@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>MQTT Web Client</title>
+  <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+</head>
+<body>
+  <h1>MQTT Web Client</h1>
+
+  <p>Status: <span id="status">Disconnected</span></p>
+
+  <label>Topic: <input type="text" id="topic" value="test/topic" /></label><br/>
+  <label>Message: <input type="text" id="message" value="Hello MQTT" /></label><br/>
+
+  <button onclick="connect()">Connect</button>
+  <button onclick="subscribe()">Subscribe</button>
+  <button onclick="publish()">Publish</button>
+
+  <h3>Messages</h3>
+  <div id="messages"></div>
+
+  <script>
+    let client;
+
+    function connect() {
+      client = mqtt.connect('wss://broker.hivemq.com:8000/mqtt');
+
+      client.on('connect', () => {
+        document.getElementById('status').innerText = 'Connected';
+        console.log('Connected to HiveMQ broker');
+      });
+
+      client.on('message', (topic, message) => {
+        const msgDiv = document.createElement('div');
+        msgDiv.textContent = `Topic: ${topic}, Message: ${message.toString()}`;
+        document.getElementById('messages').appendChild(msgDiv);
+      });
+
+      client.on('error', (err) => {
+        console.error('Connection error: ', err);
+      });
+
+      client.on('close', () => {
+        document.getElementById('status').innerText = 'Disconnected';
+      });
+    }
+
+    function subscribe() {
+      const topic = document.getElementById('topic').value;
+      client.subscribe(topic, () => {
+        console.log('Subscribed to', topic);
+      });
+    }
+
+    function publish() {
+      const topic = document.getElementById('topic').value;
+      const message = document.getElementById('message').value;
+      client.publish(topic, message);
+    }
+  </script>
+</body>
+</html>
